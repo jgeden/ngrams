@@ -46,7 +46,7 @@ def count_ngrams(text, n):
 
 
 # Plot the rank of a word against its frequency
-def plot_rank_freq(freq_dict, n, filename):
+def plot_rank_freq(freq_dict, n, filename, shortened=False):
     rank_list = [(word, freq_dict[word]) for word in freq_dict.keys()]
     rank_list = list(map(lambda term: (term[0], math.log(term[1])), rank_list))
     rank_list.sort(reverse=True, key=lambda term: term[1])
@@ -54,12 +54,15 @@ def plot_rank_freq(freq_dict, n, filename):
     ranks = [math.log(i+1) for i in range(len(rank_list))]
     print(min(ranks), max(ranks))
 
-    upper_bound = max(ranks)*0.75
-    cutoff = 0
-    for rank in ranks:
-        if rank >= upper_bound:
-            break
-        cutoff += 1
+    if shortened:
+        upper_bound = max(ranks)*0.75
+        cutoff = 0
+        for rank in ranks:
+            if rank >= upper_bound:
+                break
+            cutoff += 1
+    else:
+        cutoff = len(ranks)
 
     ranks = ranks[:cutoff]
     print(min(ranks), max(ranks))
@@ -73,7 +76,7 @@ def plot_rank_freq(freq_dict, n, filename):
     plt.ylabel('frequency (log scale)')
     plt.savefig(filename)
 
-def run_linear_reg(freq_dict,n,filename):
+def run_linear_reg(freq_dict,n,filename, shortened=False):
     rank_list = [(word, freq_dict[word]) for word in freq_dict.keys()]
     rank_list = list(map(lambda term: (term[0], math.log(term[1])), rank_list))
     rank_list.sort(reverse=True, key=lambda term: term[1])
@@ -87,12 +90,15 @@ def run_linear_reg(freq_dict,n,filename):
     X = df['rank'].values.reshape(-1, 1)  # values converts it into a numpy array
     Y = df['frequency'].values.reshape(-1, 1)
 
-    upper_bound = max(X)*0.75
-    cutoff = 0
-    for rank in X:
-        if rank >= upper_bound:
-            break
-        cutoff += 1
+    if shortened:
+        upper_bound = max(X)*0.75
+        cutoff = 0
+        for rank in X:
+            if rank >= upper_bound:
+                break
+            cutoff += 1
+    else:
+        cutoff = len(X)
 
     X = X[:cutoff]
     print(X[-1])
