@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from sklearn.linear_model import LinearRegression
 
+CUTOFF_PERCENT = 0.66
 
 # Parse text file into an array of words
 def parse_text(filename):
@@ -51,6 +52,18 @@ def plot_rank_freq(freq_dict, n, filename):
     rank_list.sort(reverse=True, key=lambda term: term[1])
 
     ranks = [math.log(i+1) for i in range(len(rank_list))]
+    print(min(ranks), max(ranks))
+
+    upper_bound = max(ranks)*0.75
+    cutoff = 0
+    for rank in ranks:
+        if rank >= upper_bound:
+            break
+        cutoff += 1
+
+    ranks = ranks[:cutoff]
+    print(min(ranks), max(ranks))
+    rank_list = rank_list[:cutoff]
 
     plt.figure()
     plt.plot(ranks, [term[1] for term in rank_list])
@@ -74,18 +87,30 @@ def run_linear_reg(freq_dict,n,filename):
     X = df['rank'].values.reshape(-1, 1)  # values converts it into a numpy array
     Y = df['frequency'].values.reshape(-1, 1)
 
+    upper_bound = max(X)*0.75
+    cutoff = 0
+    for rank in X:
+        if rank >= upper_bound:
+            break
+        cutoff += 1
+
+    X = X[:cutoff]
+    print(X[-1])
+    Y = Y[:cutoff]
+
     model = LinearRegression().fit(X, Y)
 
     r_sq = model.score(X, Y)
     print(f"coefficient of determination: {r_sq}")
     print(n)
     print(filename)
+    print()
 
 
 def main():
     texts = [
-         'vivo_de_zamenhof.txt'         # Esperanto
-        #'InterlinguaSentences_shortened.txt'      # Interlingua
+        'esperanto.txt',                          # Esperanto
+        'InterlinguaSentences_shortened.txt'      # Interlingua
     ]
 
     for text in texts:
@@ -95,8 +120,8 @@ def main():
         for n in [1, 2, 3, 4]:
             freq_dict = count_ngrams(words, n)
             
-            #run_linear_reg(freq_dict,n,os.path.join('figures',
-             #                        f'{text.replace(".txt", "")}-n_{n}.png'))
+            run_linear_reg(freq_dict,n,os.path.join('figures',
+                                    f'{text.replace(".txt", "")}-n_{n}.png'))
             
             plot_rank_freq(freq_dict, n, 
                         os.path.join('figures',
@@ -104,6 +129,7 @@ def main():
 
     # Toki Pona texts
     for n in [1, 2, 3, 4]:
+        text = 'toki_pona'
         freq_dict = toki_pona_parse(n)
         run_linear_reg(freq_dict,n,os.path.join('figures',
                                     f'{text.replace(".toki_pona-n", "")}-n_{n}.png'))
